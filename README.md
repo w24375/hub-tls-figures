@@ -26,6 +26,7 @@ This repository provides panel-level plotting code for the main figures. Preproc
 
 ## Notes for reuse
 
+- `code/main.sh` runs all 16 scripts in figure order. Each script is independent and can also be run individually.
 - All input paths are **relative to a `data/` root** (e.g. `data/hub_tls_paper_outline/figure1_assembled/…`). Unpack the manuscript's source data under `data/` preserving this layout, or set your working directory accordingly.
 - Figure conventions: 183 mm double-column width, Arial throughout, RGB color mode; SVGs are delivered without `textLength` attributes for Illustrator compatibility.
 
