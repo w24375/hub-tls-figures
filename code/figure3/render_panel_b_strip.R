@@ -3,10 +3,8 @@
 # Output overwrites panel_a_tiles/spatial_dpt_strip.png so assemble_figure3.R picks
 # it up unchanged (the script reuses the cached PNG when present).
 
-suppressPackageStartupMessages({
-  library(data.table); library(ggplot2); library(patchwork); library(RANN)
-  library(ragg); library(png); library(cowplot); library(svglite)
-})
+library(data.table); library(ggplot2); library(patchwork); library(RANN)
+library(ragg); library(png); library(cowplot); library(svglite)
 
 BASE_FONT <- "Arial"
 OUT_PNG <- "data/hub_tls_paper_outline/figure3_assembled/panel_a_tiles/spatial_dpt_strip.png"
@@ -30,7 +28,7 @@ RING_COLORS <- c("0-100"    = "#C05746",
                  ">1000"    = "#6C8EBF")
 RING_LABELS <- names(RING_COLORS)
 
-## ---------- Load + derive ----------
+# Load + derive
 dpt_dt <- fread(DPT_CSV)
 subcluster_dt <- fread(SLING_CSV, select = c("barcode", "slingshot_cluster"))
 dpt_dt <- merge(dpt_dt, subcluster_dt, by = "barcode", all.x = TRUE)
@@ -48,7 +46,7 @@ dpt_dt[, dist_ring := cut(dist_to_tls_core,
                           labels = RING_LABELS, include.lowest = TRUE, right = FALSE)]
 dpt_dt[, dist_ring := factor(dist_ring, levels = RING_LABELS)]
 
-## ---------- Theme ----------
+# Theme
 theme_b <- function(base_size = 7) {
   theme_classic(base_size = base_size, base_family = BASE_FONT) +
     theme(axis.line = element_line(linewidth = 0.4, colour = "black"),
@@ -60,7 +58,7 @@ theme_b <- function(base_size = 7) {
           plot.margin = margin(1, 1, 1, 1, "mm"))
 }
 
-## ---------- Left: CTC21P spatial cluster map with TLS-core rings ----------
+# Left: CTC21P spatial cluster map with TLS-core rings
 REP_SAMPLE <- "CTC21P"
 samp_dt <- dpt_dt[sample == REP_SAMPLE]
 core_spots <- samp_dt[is_tls_core == TRUE]
@@ -88,7 +86,7 @@ p_left <- ggplot() +
         axis.title = element_text(size = 6.5),
         legend.position = "none")
 
-## ---------- Right: violin of DPT by distance ring ----------
+# Right: violin of DPT by distance ring
 p_right <- ggplot(dpt_dt[!is.na(dist_ring)],
                   aes(x = dist_ring, y = dpt_pseudotime, fill = dist_ring)) +
   geom_violin(scale = "width", alpha = 0.7, linewidth = 0.3, trim = TRUE, colour = NA) +
@@ -102,7 +100,7 @@ p_right <- ggplot(dpt_dt[!is.na(dist_ring)],
         axis.text.x = element_text(angle = 30, hjust = 1, size = 6.5),
         axis.title.y = element_text(size = 6.5, margin = margin(r = 1, unit = "mm")))
 
-## ---------- Combine + save ----------
+# Combine + save
 # Let each subplot carry its own legend at the bottom; patchwork collects them.
 p_left_legged <- p_left +
   theme(legend.position = "bottom",

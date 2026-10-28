@@ -1,37 +1,16 @@
 #!/usr/bin/env Rscript
 # Figure 2 (7-panel) assembly for the Hub-TLS manuscript.
-# Claim: Stem hubs lie closer to TLS than Base hubs (directional maturation axis).
-# Layout: a = spatial maps (PDAC + Breast, Base/Stem/TLS);
-#         b = per-sample paired scatter (n=138); c = log2FC histogram; d = per-cancer forest;
-#         e = proximity-threshold bars (spot-level); f = module dumbbell (n=132);
-#         g = cellular composition difference (n=156).
-# Backend: R (ggplot2 + patchwork). Panels b-g native vector; panel a raster tiles.
-# All sample-level stats from source_data/ (fig2a = updated sample-level pipeline, 2026-07-25).
 
-suppressPackageStartupMessages({
-  library(ggplot2); library(patchwork); library(grid); library(png)
-  library(dplyr); library(tidyr); library(readr); library(svglite); library(ragg)
-})
+library(ggplot2); library(patchwork); library(grid); library(png)
+library(dplyr); library(tidyr); library(readr); library(svglite); library(ragg)
 
-BASE_FONT <- "Arial"; NATURE_SIZE <- 7
+source(if (file.exists("code/utils/theme.R")) "code/utils/theme.R" else "utils/theme.R")
+
 FIG_DIR <- "data/hub_tls_paper_outline/figure2_assembled"
 SRC <- file.path(FIG_DIR, "source_data")
 TILE_DIR <- file.path(FIG_DIR, "panel_a_tiles"); dir.create(TILE_DIR, showWarnings = FALSE)
 NAT <- "data/spatial/hub_precursor_analysis/signal_promotion/figures_nature"
 COL_BASE <- "#6C8EBF"; COL_STEM <- "#C41E3A"
-
-theme_nature <- function(...) {
-  theme_classic(base_size = NATURE_SIZE, base_family = BASE_FONT) +
-    theme(axis.line = element_line(linewidth = 0.35, colour = "black"),
-          axis.ticks = element_line(linewidth = 0.35, colour = "black"),
-          axis.text = element_text(size = NATURE_SIZE, colour = "black"),
-          axis.title = element_text(size = NATURE_SIZE, colour = "black"),
-          plot.title = element_text(size = NATURE_SIZE, face = "bold", hjust = 0),
-          legend.title = element_text(size = NATURE_SIZE - 0.5),
-          legend.text = element_text(size = NATURE_SIZE - 0.8),
-          legend.key.size = unit(3, "mm"), legend.margin = margin(0, 0, 0, 0),
-          panel.grid = element_blank(), plot.margin = margin(2, 2, 2, 2, "mm"), ...)
-}
 
 cancer_type_from_dataset <- function(dataset) {
   case_when(
@@ -50,7 +29,7 @@ cancer_type_from_dataset <- function(dataset) {
     TRUE ~ "Other")
 }
 
-## ---------- 1. Panel a tiles: directionality proof maps ----------
+# Panel a tiles: directionality proof maps
 process_tile <- function(sample) {
   svg_path <- file.path(NAT, paste0(sample, "_directionality_proof_HE.svg"))
   svg_txt <- paste(readLines(svg_path, warn = FALSE), collapse = "\n")
@@ -92,7 +71,7 @@ text_carrier <- function(txt, rot = 0, size = 7.5, bold = TRUE) {
     theme(plot.margin = margin(0, 0, 0, 0, "mm"))
 }
 
-## ---------- 2. Load data ----------
+# Load data
 dist_s <- read_csv(file.path(SRC, "fig2a_source.csv"), show_col_types = FALSE) |>
   mutate(cancer = cancer_type_from_dataset(dataset))
 modules <- read_csv(file.path(SRC, "fig2b_stem_vs_base_sample_level.csv"), show_col_types = FALSE)
@@ -105,7 +84,7 @@ wp <- wilcox.test(dist_s$stem_mean, dist_s$base_mean, paired = TRUE)$p.value
 mean_lfc <- mean(dist_s$log2FC); ci_l <- mean_lfc - 1.96 * sd(dist_s$log2FC) / sqrt(n_s)
 ci_u <- mean_lfc + 1.96 * sd(dist_s$log2FC) / sqrt(n_s)
 
-## ---------- 3. Panel b: paired scatter ----------
+# Panel b: paired scatter
 p_b <- ggplot(dist_s, aes(x = base_mean, y = stem_mean, colour = cancer)) +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed", linewidth = 0.4, colour = "grey50") +
   geom_point(size = 1.1, alpha = 0.85) +
@@ -120,7 +99,7 @@ p_b <- ggplot(dist_s, aes(x = base_mean, y = stem_mean, colour = cancer)) +
   theme(legend.position = "right", legend.key.size = unit(2.4, "mm"),
         legend.text = element_text(size = NATURE_SIZE - 1.2))
 
-## ---------- 4. Panel c: log2FC histogram ----------
+# Panel c: log2FC histogram
 dist_s <- dist_s |>
   mutate(sig_cat = factor(signif_cat,
                           levels = c("Stem closer (FDR<0.05)", "Not significant", "Base closer (FDR<0.05)")))
@@ -141,7 +120,7 @@ p_c <- ggplot(dist_s, aes(x = log2FC, fill = sig_cat)) +
         legend.key.size = unit(2.2, "mm")) +
   guides(fill = guide_legend(nrow = 1))
 
-## ---------- 5. Panel d: per-cancer forest (dot strip + median) ----------
+# Panel d: per-cancer forest (dot strip + median)
 per_cancer <- dist_s |>
   group_by(cancer) |>
   summarise(n = n(), med = median(log2FC), .groups = "drop") |>
@@ -159,7 +138,7 @@ p_d <- ggplot(dist_s2, aes(y = cancer, x = log2FC)) +
   theme_nature() +
   theme(plot.title = element_text(size = NATURE_SIZE - 0.3, face = "bold"))
 
-## ---------- 6. Panel e: proximity thresholds (spot-level, descriptive) ----------
+# Panel e: proximity thresholds (spot-level, descriptive)
 prox_l <- prox |>
   select(hub_subtype, n, pct_within_100, pct_within_200, pct_within_500) |>
   pivot_longer(starts_with("pct_within"), names_to = "threshold", values_to = "pct") |>
@@ -179,7 +158,7 @@ p_e <- ggplot(prox_l, aes(x = threshold, y = pct, fill = hub_subtype)) +
         axis.text.x = element_text(size = NATURE_SIZE - 0.6),
         plot.title = element_text(size = NATURE_SIZE - 0.4, face = "bold"))
 
-## ---------- 7. Panel f: module dumbbell (Stem vs Base, n=132) ----------
+# Panel f: module dumbbell (Stem vs Base, n=132)
 mod_lab <- c("chemokine_score" = "Chemokine", "myeloid_score" = "Myeloid",
              "tls_maturity_score" = "TLS maturity", "Hub_tcell" = "Hub T-cell",
              "Hub_dc" = "Hub DC", "HEV_GENES" = "HEV genes",
@@ -211,7 +190,7 @@ p_f <- ggplot(mf_long, aes(y = label)) +
   theme(legend.position = "bottom", legend.direction = "horizontal",
         plot.margin = margin(4, 34, 2, 2, "mm"))
 
-## ---------- 8. Panel g: composition difference ----------
+# Panel g: composition difference
 comp2 <- comp |>
   mutate(stem_enrichment = -mean_log2FC,
          stars = case_when(fdr < 0.001 ~ "***", fdr < 0.01 ~ "**", fdr < 0.05 ~ "*", TRUE ~ ""),
@@ -242,7 +221,7 @@ p_g <- ggplot(top_g, aes(y = display, x = stem_enrichment, fill = dir)) +
   theme_nature() +
   theme(axis.text.y = element_text(size = NATURE_SIZE - 0.5), legend.position = "none")
 
-## ---------- 9. Compose ----------
+# Compose
 a_tag <- ggplot() + theme_void() + labs(tag = "A") +
   theme(plot.tag = element_text(size = 13, face = "bold", family = BASE_FONT),
         plot.tag.position = c(0, 1), plot.margin = margin(0, 0, 0, 0, "mm"))
@@ -270,7 +249,7 @@ cairo_pdf(file.path(FIG_DIR, "fig2_composite.pdf"), width = w_in, height = h_in,
 ragg::agg_png(file.path(FIG_DIR, "fig2_composite.png"), width = W, height = H, units = "mm", res = 400); print(final); dev.off()
 message("Figure 2 written: ", W, " x ", H, " mm; samples: ", n_s, ", stem closer: ", n_closer, " (", pct_closer, "%)")
 
-## ---------- 10. Export individual panels for the report ----------
+# Export individual panels for the report
 REP_DIR <- file.path(FIG_DIR, "report_panels"); dir.create(REP_DIR, showWarnings = FALSE)
 save_panel <- function(plot, name, w_mm, h_mm) {
   ragg::agg_png(file.path(REP_DIR, name), width = w_mm, height = h_mm, units = "mm", res = 300)

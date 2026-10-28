@@ -3,11 +3,8 @@
 # transition / E-TLS / PFL-TLS / SFL-TLS) for two public samples (labels from the
 # main pipeline outputs) and two in-house Visium sections (classified here with
 # the exact rules of spatial/run_full_tls_pipeline.R).
-# Run with: /usr/bin/Rscript render_panel_a_axis_tiles.R
 
-suppressPackageStartupMessages({
-  library(Seurat); library(ggplot2); library(grid); library(dplyr)
-})
+library(Seurat); library(ggplot2); library(grid); library(dplyr)
 
 OUT_DIR <- "data/hub_tls_paper_outline/figure3_assembled/panel_a_tiles"
 dir.create(OUT_DIR, showWarnings = FALSE, recursive = TRUE)
@@ -57,7 +54,7 @@ render_tile <- function(seu, tls_stage, is_hub, out_png) {
   table(fg$cls)
 }
 
-## ---------- public samples: labels already computed by the main pipeline ----------
+# public samples: labels already computed by the main pipeline
 ## Chosen by screen_panel_a_samples.R across all 158 samples: highest TLS
 ## clustering + hub-adjacency-to-TLS (adj_score 2.29 / 1.73). Both are
 ## BreastCancer_Spatial_CID (Visium); the previous PDAC/Lung pair were confetti.
@@ -72,7 +69,7 @@ for (spec in list(
   cat(spec$tag, ":", paste(names(tab), tab, sep = "=", collapse = " "), "\n")
 }
 
-## ---------- in-house samples: classify with the pipeline rules ----------
+# in-house samples: classify with the pipeline rules
 detection_modules <- list(
   Meylan_5    = c("CXCL13", "CCL19", "CCL21", "LAMP3", "CCR7"),
   Cabrita_12  = c("CD3D", "CD3E", "CD8A", "CD19", "CD79A", "MS4A1",

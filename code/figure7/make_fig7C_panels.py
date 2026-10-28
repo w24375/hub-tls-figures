@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
-"""Generate the fig7 per-cancer spatial-stats panels (C1 forest + C2 stats).
-
+"""Fig 7 per-cancer spatial-stats panels (C1 forest + C2 stats).
 Source: metabolism_target/spatial_deep_full_cohort.csv (132 samples).
-Canonical cancer labels are assigned per dataset via the DATASET_TO_CANCER
-mapping below.
 Outputs: fig7_C1_forest.{svg,png,pdf}, fig7_C2_stats.{svg,png,pdf}
 """
 import pandas as pd

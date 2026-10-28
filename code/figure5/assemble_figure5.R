@@ -1,36 +1,16 @@
 #!/usr/bin/env Rscript
 # Figure 5 (7-panel) assembly for the Hub-TLS manuscript.
-# Claim: CCR7+ T / CXCR5+ B cells statistically mediate hub-to-TLS formation;
-#        hub proximity licenses the E-to-PFL organizational transition (spatial necessity).
-# a = mediation DAG schematic; b = mediation proportions; c = L-R spatial correlation;
-# d = L-R spatial proximity (observed/expected); e = proximal vs distal TLS PFL module (n=36);
-# f = TLS stage composition by hub proximity; g = module profiles by hub proximity (spot-level).
-# Backend: R (ggplot2 + patchwork). All panels native vector.
 
-suppressPackageStartupMessages({
-  library(ggplot2); library(patchwork); library(grid)
-  library(dplyr); library(tidyr); library(readr); library(svglite); library(ragg)
-})
+library(ggplot2); library(patchwork); library(grid)
+library(dplyr); library(tidyr); library(readr); library(svglite); library(ragg)
 
-BASE_FONT <- "Arial"; NATURE_SIZE <- 7
+source(if (file.exists("code/utils/theme.R")) "code/utils/theme.R" else "utils/theme.R")
+
 FIG_DIR <- "data/hub_tls_paper_outline/figure5_assembled"
 SRC <- file.path(FIG_DIR, "source_data")
 COL_T <- "#D24B40"; COL_B <- "#66B2A4"; COL_PROX <- "#C41E3A"; COL_DIST <- "grey60"
 
-theme_nature <- function(...) {
-  theme_classic(base_size = NATURE_SIZE, base_family = BASE_FONT) +
-    theme(axis.line = element_line(linewidth = 0.35, colour = "black"),
-          axis.ticks = element_line(linewidth = 0.35, colour = "black"),
-          axis.text = element_text(size = NATURE_SIZE, colour = "black"),
-          axis.title = element_text(size = NATURE_SIZE, colour = "black"),
-          plot.title = element_text(size = NATURE_SIZE, face = "bold", hjust = 0),
-          legend.title = element_text(size = NATURE_SIZE - 0.5),
-          legend.text = element_text(size = NATURE_SIZE - 0.8),
-          legend.key.size = unit(3, "mm"), legend.margin = margin(0, 0, 0, 0),
-          panel.grid = element_blank(), plot.margin = margin(2, 2, 2, 2, "mm"), ...)
-}
-
-## ---------- 1. Panel a: mediation DAG schematic ----------
+# Panel a: mediation DAG schematic
 box <- function(x0, x1, y0, y1, fill, border, label, size = NATURE_SIZE * 0.36, bold = TRUE) {
   list(annotate("rect", xmin = x0, xmax = x1, ymin = y0, ymax = y1,
                 fill = fill, colour = border, linewidth = 0.5),
@@ -68,7 +48,7 @@ p_a <- ggplot() +
   theme(plot.tag = element_text(size = 13, face = "bold", family = BASE_FONT),
         plot.margin = margin(2, 2, 2, 2, "mm"))
 
-## ---------- 2. Panel b: mediation proportions ----------
+# Panel b: mediation proportions
 med <- read_csv(file.path(SRC, "fig5b_mediation_summary.csv"), show_col_types = FALSE) |>
   mutate(prop_pct = prop_mediated * 100,
          sig = case_when(ACME_p < 0.05 ~ "*", TRUE ~ "ns"),
@@ -97,7 +77,7 @@ p_b <- ggplot(med, aes(x = mediator, y = prop_pct, fill = outcome)) +
   theme(legend.position = c(0.02, 0.98), legend.justification = c(0, 1),
         legend.background = element_blank())
 
-## ---------- 3. Panel c: L-R spatial correlation (full cohort, sample-level) ----------
+# Panel c: L-R spatial correlation (full cohort, sample-level)
 lr_c <- read_csv(file.path(SRC, "fig5c_lr_correlation_full_cohort.csv"), show_col_types = FALSE) |>
   filter(!is.na(rho_ccr7) & !is.na(rho_cxcr5))
 n_c <- nrow(lr_c)
@@ -126,7 +106,7 @@ p_c <- ggplot(lr_long, aes(x = pair, y = rho)) +
   theme_nature() +
   theme(legend.position = "none", axis.text.x = element_text(size = NATURE_SIZE - 1, lineheight = 0.9))
 
-## ---------- 4. Panel d: L-R spatial proximity (full cohort, sample-level) ----------
+# Panel d: L-R spatial proximity (full cohort, sample-level)
 lrp <- read_csv(file.path(SRC, "fig5d_lr_proximity_full_cohort.csv"), show_col_types = FALSE) |>
   mutate(pair = factor(pair, levels = c("CCL19/CCL21 – CCR7", "CXCL13 – CXCR5"),
                        labels = c("CCL19/CCL21\n– CCR7", "CXCL13\n– CXCR5")))
@@ -152,7 +132,7 @@ p_d <- ggplot(lrp, aes(x = pair, y = ratio)) +
   theme_nature() +
   theme(legend.position = "none", axis.text.x = element_text(size = NATURE_SIZE - 1, lineheight = 0.9))
 
-## ---------- 5. Panel e: proximal vs distal TLS PFL module (sample-level) ----------
+# Panel e: proximal vs distal TLS PFL module (sample-level)
 pd <- read_csv(file.path(SRC, "fig5e_pfl_tls_proximal_vs_distal_sample_level.csv"), show_col_types = FALSE)
 n_e <- nrow(pd); med_diff <- median(pd$diff); frac_pos <- mean(pd$diff > 0)
 p_e_val <- wilcox.test(pd$prox, pd$dist, paired = TRUE)$p.value
@@ -171,7 +151,7 @@ p_e <- ggplot(pd, aes(x = dist, y = prox)) +
   theme(aspect.ratio = 1,
         axis.title = element_text(size = NATURE_SIZE - 0.5, lineheight = 0.95))
 
-## ---------- 6. Panel f: TLS stage composition by hub proximity (sample-level) ----------
+# Panel f: TLS stage composition by hub proximity (sample-level)
 d_spots <- read_csv(file.path(SRC, "D_tls_spot_dist_to_hub.csv"), show_col_types = FALSE)
 f_stats <- read_csv(file.path(SRC, "fig5f_stage_composition_sample_level.csv"), show_col_types = FALSE)
 star_of <- function(f) case_when(f < 0.001 ~ "***", f < 0.01 ~ "**", f < 0.05 ~ "*", TRUE ~ "ns")
@@ -219,7 +199,7 @@ p_f <- ggplot(comp_f, aes(x = hub_proximity, y = pct, fill = tls_stage)) +
   theme_nature() +
   theme(legend.position = "right", axis.text.x = element_text(size = NATURE_SIZE - 1, lineheight = 0.9))
 
-## ---------- 7. Panel g: module profiles by hub proximity (spot-level) ----------
+# Panel g: module profiles by hub proximity (spot-level)
 mod <- read_csv(file.path(SRC, "fig5g_module_by_hub_proximity.csv"), show_col_types = FALSE)
 mod_lab <- c("E_TLS_GENES" = "E-TLS genes", "PFL_TLS_GENES" = "PFL-TLS genes",
              "SFL_TLS_GENES" = "SFL-TLS genes", "Hub_chemo" = "Hub chemo",
@@ -250,7 +230,7 @@ p_g <- ggplot(mod_long, aes(y = label)) +
   theme(legend.position = "bottom", legend.direction = "horizontal",
         plot.margin = margin(4, 18, 2, 2, "mm"))
 
-## ---------- 8. Compose ----------
+# Compose
 row1 <- p_a + p_b + plot_layout(widths = c(1.25, 1))
 row2 <- p_c + p_d + p_e + plot_layout(widths = c(1.05, 1.05, 1))
 row3 <- p_f + p_g + plot_layout(widths = c(0.95, 1.3))
@@ -272,7 +252,7 @@ cairo_pdf(file.path(FIG_DIR, "fig5_composite.pdf"), width = w_in, height = h_in,
 ragg::agg_png(file.path(FIG_DIR, "fig5_composite.png"), width = W, height = H, units = "mm", res = 400); print(final); dev.off()
 message("Figure 5 written: ", W, " x ", H, " mm")
 
-## ---------- 9. Export individual panels ----------
+# Export individual panels
 REP_DIR <- file.path(FIG_DIR, "report_panels"); dir.create(REP_DIR, showWarnings = FALSE)
 save_panel <- function(plot, name, w_mm, h_mm) {
   ragg::agg_png(file.path(REP_DIR, name), width = w_mm, height = h_mm, units = "mm", res = 300)

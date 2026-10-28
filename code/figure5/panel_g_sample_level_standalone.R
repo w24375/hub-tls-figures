@@ -4,26 +4,13 @@
 # samples); right column: median difference + paired-Wilcoxon FDR stars.
 # Data: fig5g_module_by_hub_proximity_sample_level.csv (sample-level, canonical modules).
 
-suppressPackageStartupMessages({
-  library(ggplot2); library(dplyr); library(tidyr); library(readr); library(svglite); library(ragg)
-})
+library(ggplot2); library(dplyr); library(tidyr); library(readr); library(svglite); library(ragg)
 
-BASE_FONT <- "Arial"; NATURE_SIZE <- 7
+source(if (file.exists("code/utils/theme.R")) "code/utils/theme.R" else "utils/theme.R")
+
 SRC <- "data/hub_tls_paper_outline/figure5_assembled/source_data"
 OUT <- "data/hub_tls_paper_outline/figures_AI_ready"
 COL_PROX <- "#C41E3A"; COL_DIST <- "grey60"
-
-theme_nature <- function(...) {
-  theme_classic(base_size = NATURE_SIZE, base_family = BASE_FONT) +
-    theme(axis.line = element_line(linewidth = 0.35, colour = "black"),
-          axis.ticks = element_line(linewidth = 0.35, colour = "black"),
-          axis.text = element_text(size = NATURE_SIZE, colour = "black"),
-          axis.title = element_text(size = NATURE_SIZE, colour = "black"),
-          legend.title = element_text(size = NATURE_SIZE - 0.5),
-          legend.text = element_text(size = NATURE_SIZE - 0.8),
-          legend.key.size = unit(3, "mm"), legend.margin = margin(0, 0, 0, 0),
-          panel.grid = element_blank(), plot.margin = margin(4, 20, 2, 2, "mm"), ...)
-}
 
 mod <- read_csv(file.path(SRC, "fig5g_module_by_hub_proximity_sample_level.csv"),
                 show_col_types = FALSE)

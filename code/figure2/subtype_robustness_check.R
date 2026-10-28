@@ -11,9 +11,7 @@
 # Classification semantics identical to run_full_tls_pipeline.R:
 #   stem = is_immune_hub & score >= median(score, ALL spots in sample).
 
-suppressPackageStartupMessages({
-  library(Seurat); library(data.table); library(ggplot2)
-})
+library(Seurat); library(data.table); library(ggplot2)
 
 set.seed(20261007)
 OUT <- "data/hub_tls_paper_outline/figure2_assembled/robustness_checks"
@@ -36,11 +34,11 @@ score_one <- function(dataset, sample) {
                         name = "nocc4", ctrl = 20)
   md <- seu@meta.data
   out <- data.table(
-    barcode  = paste(sample, colnames(seu), sep = "_"),
-    strict3  = md$strict31,
-    nocc4    = md$nocc41,
+    barcode = paste(sample, colnames(seu), sep = "_"),
+    strict3 = md$strict31,
+    nocc4 = md$nocc41,
     med_strict3 = median(md$strict31, na.rm = TRUE),
-    med_nocc4   = median(md$nocc41,   na.rm = TRUE)
+    med_nocc4 = median(md$nocc41,   na.rm = TRUE)
   )
   out
 }

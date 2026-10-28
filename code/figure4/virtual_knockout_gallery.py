@@ -1,21 +1,7 @@
 #!/usr/bin/env python3
 # virtual_knockout_gallery.py
-# Render Figure 4 panels g (PCA displacement field) and h (spatial perturbation
-# maps) for the Hub-TLS manuscript.
-#
-# Panel h uses the TLS-module readout (consistent with panels e/f/i), with
-# leave-one-out de-circularized deltas and a per-gene LOO reference recomputed
-# from the underlying matrix. Original TLS score is shown in paper green;
-# collapse delta in paper blue; a black contour anchors the hub region on all
-# four spatial maps.
-#
-# Design:
-#   1. Hub-high contour on all four spatial maps; TLS-like basin contour on
-#      the PCA field.
-#   2. Paper palette on panel h; panel g keeps magma/coolwarm with the basin
-#      contour added.
-#   3. Liberation Sans (Arial-compatible) throughout.
-#
+# Fig 4 panels g (PCA displacement field) + h (spatial perturbation maps).
+# Uses LOO de-circularized deltas with per-gene reference recomputed from the matrix.
 # Outputs: ko_spatial_tls_delta_enhanced.*, ko_pca_field_enhanced.*
 
 from pathlib import Path

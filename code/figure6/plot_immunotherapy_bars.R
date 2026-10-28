@@ -6,7 +6,7 @@
 # Cross-tab:
 #   Hub+ (n=14): TLS+/R 13, TLS-/NR 1
 #   Hub- (n=5):  TLS+/R 1, TLS+/NR 2, TLS-/R 1, TLS-/NR 1
-suppressPackageStartupMessages(library(ggplot2))
+library(ggplot2)
 
 outdir <- "data/hub_tls_paper_outline"
 fam <- "Arial"
@@ -43,7 +43,7 @@ save_pub <- function(p, name, w_mm, h_mm) {
   print(p); dev.off()
 }
 
-## ---------- Fig A: TLS status by response (n = 19) ----------
+# Fig A: TLS status by response (n = 19)
 df1 <- data.frame(
   group = factor(rep(c("Responder", "Non-responder"), times = c(15, 4)),
                  levels = c("Responder", "Non-responder")),
@@ -94,7 +94,7 @@ p1 <- ggplot(df1, aes(group, fill = tls)) +
 
 save_pub(p1, "figA_tls_by_response", w_mm = 60, h_mm = 62)
 
-## ---------- Fig B: pre-treatment Hub+ vs Hub- -> TLS / response ----------
+# Fig B: pre-treatment Hub+ vs Hub- -> TLS / response
 dfB <- data.frame(
   endpoint = factor(rep(c("TLS after treatment", "Objective response"), each = 4),
                     levels = c("TLS after treatment", "Objective response")),
@@ -152,7 +152,7 @@ p2 <- ggplot(dfB, aes(hub, n, fill = fillgrp)) +
 
 save_pub(p2, "figB_hub_groups_outcomes", w_mm = 95, h_mm = 62)
 
-## ---------- Fig C: Hub -> TLS -> response chain ----------
+# Fig C: Hub -> TLS -> response chain
 library(ggalluvial)
 dfS <- data.frame(
   hub  = factor(c("Hub+ (14)", "Hub+ (14)",
