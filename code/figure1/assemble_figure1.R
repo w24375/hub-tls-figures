@@ -1,37 +1,17 @@
 #!/usr/bin/env Rscript
 # Figure 1 (7-panel) assembly for the Hub-TLS manuscript.
-# Layout: a = spatial plate (2 samples x [TLS stage, CCL19, CXCL13]);
-#         b = radial gradient; c = TLS-ring chemokine heatmap; d = hub-centric gradient meta forest;
-#         e = proximal vs distal dumbbell; f = hub cell-type enrichment; g = chemokine producers.
-# Backend: R (ggplot2 + patchwork). Panels b-g are native vector; panel a tiles are raster.
-# Source data: figure1_assembled/source_data/. fig1c values transcribed from the project
-# ring-heatmap figure; fig1d values transcribed from the spatial evidence report (evidence 1 table).
 
-suppressPackageStartupMessages({
-  library(ggplot2); library(patchwork); library(grid); library(png)
-  library(dplyr); library(tidyr); library(readr); library(svglite); library(ragg)
-})
+library(ggplot2); library(patchwork); library(grid); library(png)
+library(dplyr); library(tidyr); library(readr); library(svglite); library(ragg)
 
-BASE_FONT <- "Arial"; NATURE_SIZE <- 7
+source(if (file.exists("code/utils/theme.R")) "code/utils/theme.R" else "utils/theme.R")
+
 FIG_DIR <- "data/hub_tls_paper_outline/figure1_assembled"
 SRC <- file.path(FIG_DIR, "source_data")
 TILE_DIR <- file.path(FIG_DIR, "panel_a_tiles"); dir.create(TILE_DIR, showWarnings = FALSE)
 NAT <- "data/hub_tls_paper_outline/figure1_assembled/panel_a_tiles_svg"  # legend-enlarged tiles
 
-theme_nature <- function(...) {
-  theme_classic(base_size = NATURE_SIZE, base_family = BASE_FONT) +
-    theme(axis.line = element_line(linewidth = 0.35, colour = "black"),
-          axis.ticks = element_line(linewidth = 0.35, colour = "black"),
-          axis.text = element_text(size = NATURE_SIZE, colour = "black"),
-          axis.title = element_text(size = NATURE_SIZE, colour = "black"),
-          plot.title = element_text(size = NATURE_SIZE, face = "bold", hjust = 0),
-          legend.title = element_text(size = NATURE_SIZE - 0.5),
-          legend.text = element_text(size = NATURE_SIZE - 0.8),
-          legend.key.size = unit(3, "mm"), legend.margin = margin(0, 0, 0, 0),
-          panel.grid = element_blank(), plot.margin = margin(2, 2, 2, 2, "mm"), ...)
-}
-
-## ---------- 1. Panel a tiles (native vector) ----------
+# Panel a tiles (native vector)
 marker_label <- c(tls_stage = "TLS stage", CCL19 = "CCL19", CXCL13 = "CXCL13")
 
 blend_white <- function(hex, a) {
@@ -41,13 +21,13 @@ blend_white <- function(hex, a) {
 }
 
 parse_tile <- function(svg_path) {
-  ln  <- readLines(svg_path, warn = FALSE)
+  ln <- readLines(svg_path, warn = FALSE)
   cir <- ln[grepl("<circle", ln)]
-  cx   <- as.numeric(sub(".*cx='([0-9.]+)'.*", "\\1", cir))
-  cy   <- as.numeric(sub(".*cy='([0-9.]+)'.*", "\\1", cir))
-  rr   <- as.numeric(sub(".*r='([0-9.]+)'.*",  "\\1", cir))
+  cx <- as.numeric(sub(".*cx='([0-9.]+)'.*", "\\1", cir))
+  cy <- as.numeric(sub(".*cy='([0-9.]+)'.*", "\\1", cir))
+  rr <- as.numeric(sub(".*r='([0-9.]+)'.*",  "\\1", cir))
   fill <- sub(".*fill: (#[0-9A-Fa-f]{6}).*", "\\1", cir)
-  fop  <- suppressWarnings(as.numeric(sub(".*fill-opacity: ([0-9.]+).*", "\\1", cir)))
+  fop <- suppressWarnings(as.numeric(sub(".*fill-opacity: ([0-9.]+).*", "\\1", cir)))
   fop[is.na(fop)] <- 1
   lin <- ln[grepl("<line", ln)]
   seg <- NULL
@@ -65,7 +45,7 @@ UNITS_TO_MM <- 0.22  # ~56 mm cell / ~255 svg units
 
 vector_tile <- function(sample, marker) {
   svg_path <- file.path(NAT, paste0(sample, "_", marker, "_HE.svg"))
-  ln  <- readLines(svg_path, warn = FALSE)
+  ln <- readLines(svg_path, warn = FALSE)
   tl  <- parse_tile(svg_path)
   sp  <- tl$spots
   leg <- sp[sp$cx > 204, ]          # legend keys (tls_stage only)
@@ -154,7 +134,7 @@ mk_row <- function(sample, label) {
 a_grid <- hdr / mk_row("PDAC_PA05_2", "PDAC PA05-2") / mk_row("Breast_M11", "Breast M11") +
   plot_layout(heights = c(0.07, 1, 1))
 
-## ---------- 2. Panel b: radial gradient ----------
+# Panel b: radial gradient
 radial_agg <- read_csv(file.path(SRC, "fig1_radial_gradient_source_data.csv"), show_col_types = FALSE) |>
   arrange(dist_bin)
 p_b <- ggplot(radial_agg, aes(x = dist_bin, y = mean_hub)) +
@@ -169,7 +149,7 @@ p_b <- ggplot(radial_agg, aes(x = dist_bin, y = mean_hub)) +
   labs(tag = "B") +
   theme_nature()
 
-## ---------- 3. Panel c: TLS-ring chemokine heatmap ----------
+# Panel c: TLS-ring chemokine heatmap
 rc <- read_csv(file.path(SRC, "fig1c_tls_ring_chemokine.csv"), show_col_types = FALSE)
 ring_levels <- c("TLS-0-100", "TLS-100-200", "TLS-200-300", "TLS-300-500", "TLS-500-1000", "TLS->1000")
 rc <- rc |> mutate(ring = factor(ring, levels = ring_levels),
@@ -189,7 +169,7 @@ p_c <- ggplot(rc, aes(x = ring, y = gene)) +
         legend.text = element_text(size = NATURE_SIZE - 1.4),
         legend.key.size = unit(2.6, "mm"))
 
-## ---------- 4. Panel d: hub-centric gradient meta forest ----------
+# Panel d: hub-centric gradient meta forest
 meta <- read_csv(file.path(SRC, "fig1d_hub_centric_gradient_meta.csv"), show_col_types = FALSE) |>
   mutate(signature = recode(signature,
                             "CCR7+ T-cell signature" = "CCR7+ T cell",
@@ -215,7 +195,7 @@ p_d <- ggplot(meta, aes(y = signature, x = pooled_r)) +
         legend.position = "bottom", legend.direction = "horizontal",
         legend.margin = margin(0, 0, 0, 0), legend.box.margin = margin(-4, 0, 0, 0))
 
-## ---------- 5. Panel e: proximal vs distal dumbbell ----------
+# Panel e: proximal vs distal dumbbell
 df <- read_csv(file.path(SRC, "C_proximal_vs_distal_hub_DE_sample_level.csv"), show_col_types = FALSE) |>
   mutate(gene = factor(gene, levels = rev(c("CCL19", "CXCL13", "CCL21", "LTB"))),
          fdr_label = sprintf("FDR = %.0e", fdr),
@@ -241,7 +221,7 @@ p_e <- ggplot(long, aes(y = gene)) +
   theme(legend.position = "bottom", legend.direction = "horizontal",
         plot.margin = margin(6, 30, 2, 2, "mm"))
 
-## ---------- 6. Panel f: hub cell-type enrichment (top hits) ----------
+# Panel f: hub cell-type enrichment (top hits)
 enr <- read_csv(file.path(SRC, "fig1f_hub_celltype_enrichment.csv"), show_col_types = FALSE)
 top <- bind_rows(
   enr |> filter(direction == "enriched") |> slice_max(mean_log2FC, n = 6, with_ties = FALSE),
@@ -270,7 +250,7 @@ p_f <- ggplot(top, aes(y = display_name, x = mean_log2FC, fill = direction)) +
   theme_nature() +
   theme(axis.text.y = element_text(size = NATURE_SIZE - 0.7), legend.position = "none")
 
-## ---------- 7. Panel g: chemokine producers ----------
+# Panel g: chemokine producers
 prod <- read_csv(file.path(SRC, "fig1g_chemokine_producers.csv"), show_col_types = FALSE)
 short <- c("DCs (mregDC LAMP3/CCR7/IDO1+)" = "mregDC",
            "NK cells (cytotoxic, IFN-resp)" = "NK (cytotoxic)",
@@ -297,7 +277,7 @@ p_g <- ggplot(prod, aes(x = gene, y = factor(cell_short, levels = rev(ord)))) +
         legend.position = "bottom", legend.direction = "vertical",
         legend.box = "horizontal", legend.box.margin = margin(-3, 0, 0, 0))
 
-## ---------- 8. Compose ----------
+# Compose
 a_tag <- ggplot() + theme_void() + labs(tag = "A") +
   theme(plot.tag = element_text(size = 13, face = "bold", family = BASE_FONT),
         plot.tag.position = c(0, 1), plot.margin = margin(0, 0, 0, 0, "mm"))
@@ -323,7 +303,7 @@ cairo_pdf(file.path(FIG_DIR, "fig1_composite.pdf"), width = w_in, height = h_in,
 ragg::agg_png(file.path(FIG_DIR, "fig1_composite.png"), width = W, height = H, units = "mm", res = 400); print(final); dev.off()
 message("Figure 1 written: ", W, " x ", H, " mm")
 
-## ---------- 9. Export individual panels for the assembly report ----------
+# Export individual panels for the assembly report
 REP_DIR <- file.path(FIG_DIR, "report_panels"); dir.create(REP_DIR, showWarnings = FALSE)
 save_panel <- function(plot, name, w_mm, h_mm) {
   ragg::agg_png(file.path(REP_DIR, name), width = w_mm, height = h_mm, units = "mm", res = 300)

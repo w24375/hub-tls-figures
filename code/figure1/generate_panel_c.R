@@ -1,23 +1,9 @@
 #!/usr/bin/env Rscript
 # Fig 1 panel c (sample-level): proximal vs distal hub differential expression.
 # Data: pseudoreplication_fix sample-level paired Wilcoxon (n = 105 samples).
-suppressPackageStartupMessages({
-  library(ggplot2); library(dplyr); library(tidyr); library(readr); library(svglite); library(ragg)
-})
+library(ggplot2); library(dplyr); library(tidyr); library(readr); library(svglite); library(ragg)
 
-BASE_FONT <- "Arial"; NATURE_SIZE <- 7
-theme_nature <- function(...) {
-  theme_classic(base_size = NATURE_SIZE, base_family = BASE_FONT) +
-    theme(axis.line = element_line(linewidth = 0.35, colour = "black"),
-          axis.ticks = element_line(linewidth = 0.35, colour = "black"),
-          axis.text = element_text(size = NATURE_SIZE, colour = "black"),
-          axis.title = element_text(size = NATURE_SIZE, colour = "black"),
-          plot.title = element_text(size = NATURE_SIZE + 1, face = "bold", hjust = 0),
-          legend.title = element_text(size = NATURE_SIZE - 0.5),
-          legend.text = element_text(size = NATURE_SIZE - 0.8),
-          legend.key.size = unit(3, "mm"), legend.margin = margin(0, 0, 0, 0),
-          panel.grid = element_blank(), plot.margin = margin(2, 2, 2, 2, "mm"), ...)
-}
+source(if (file.exists("code/utils/theme.R")) "code/utils/theme.R" else "utils/theme.R")
 
 OUT_DIR <- "data/hub_tls_paper_outline/figure1_assembled"
 df <- read_csv(file.path(OUT_DIR, "source_data", "C_proximal_vs_distal_hub_DE_sample_level.csv"),

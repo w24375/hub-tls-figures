@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
-"""Generate the fig7 per-cancer IDO1 axis heatmap.
-
-Canonical cancer labels are assigned per dataset via the DATASET_TO_CANCER
-mapping below. Source: metabolism_target/hub_spot_candidate_genes_with_pt.csv
-(37,230 hub spots).
-Output: fig7_B_heatmap.{svg,png,pdf} + fig7_B_heatmap.csv
+"""Fig 7 per-cancer IDO1 axis heatmap.
+Source: metabolism_target/hub_spot_candidate_genes_with_pt.csv (37,230 hub spots).
+Output: fig7_B_heatmap.{svg,png,pdf} + .csv
 """
 import pandas as pd
 import numpy as np

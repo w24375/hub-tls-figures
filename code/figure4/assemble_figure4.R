@@ -1,40 +1,17 @@
 #!/usr/bin/env Rscript
 # Figure 4 (10-panel) assembly for the Hub-TLS manuscript.
-# Claim: CCL19/CCL21/CXCL13 are the top-3 genes required to maintain hub and TLS
-# signals, confirmed by two independent virtual-KO methods (CellOracle, GEARS),
-# with leave-one-out de-circularization and combination-KO collapse.
-# Panels: a = impact ranking (both methods); b = method consistency (r = 0.944);
-#         c = module-delta heatmap (CellOracle); d = LOO de-circularization dumbbell;
-#         e = TLS_like state shift per KO; f = combination-KO collapse;
-#         g = PCA displacement field (raster); h = spatial perturbation maps (raster);
-#         i = LOO state-collapse bars; j = state-dissolution series (raster).
-# Backend: R (ggplot2 + patchwork). Panels a-f,i native vector; g/h/j raster embeds.
 
-suppressPackageStartupMessages({
-  library(ggplot2); library(patchwork); library(grid); library(png)
-  library(dplyr); library(tidyr); library(readr); library(svglite); library(ragg)
-})
+library(ggplot2); library(patchwork); library(grid); library(png)
+library(dplyr); library(tidyr); library(readr); library(svglite); library(ragg)
 
-BASE_FONT <- "Arial"; NATURE_SIZE <- 7
+source(if (file.exists("code/utils/theme.R")) "code/utils/theme.R" else "utils/theme.R")
+
 FIG_DIR <- "data/hub_tls_paper_outline/figure4_assembled"
 SRC <- file.path(FIG_DIR, "source_data")
 TILE_DIR <- file.path(FIG_DIR, "panel_rasters"); dir.create(TILE_DIR, showWarnings = FALSE)
 VK_FIG <- "data/spatial/hub_precursor_analysis/virtual_knockout/figures/flashy"
 
 COL_CO <- "#6C8EBF"; COL_GE <- "#E7A03D"; COL_TRIAD <- "#C41E3A"
-
-theme_nature <- function(...) {
-  theme_classic(base_size = NATURE_SIZE, base_family = BASE_FONT) +
-    theme(axis.line = element_line(linewidth = 0.35, colour = "black"),
-          axis.ticks = element_line(linewidth = 0.35, colour = "black"),
-          axis.text = element_text(size = NATURE_SIZE, colour = "black"),
-          axis.title = element_text(size = NATURE_SIZE, colour = "black"),
-          plot.title = element_text(size = NATURE_SIZE, face = "bold", hjust = 0),
-          legend.title = element_text(size = NATURE_SIZE - 0.5),
-          legend.text = element_text(size = NATURE_SIZE - 0.8),
-          legend.key.size = unit(3, "mm"), legend.margin = margin(0, 0, 0, 0),
-          panel.grid = element_blank(), plot.margin = margin(2, 2, 2, 2, "mm"), ...)
-}
 
 trim_png <- function(in_path, out_path) {
   arr <- png::readPNG(in_path)
@@ -59,7 +36,7 @@ raster_panel <- function(png_path, tag = NULL, margin_mm = 1) {
   p
 }
 
-## ---------- 1. Load data ----------
+# Load data
 mc <- read_csv(file.path(SRC, "fig4ab_ko_method_comparison.csv"), show_col_types = FALSE)
 mod_delta <- read_csv(file.path(SRC, "fig4c_module_delta_celloracle.csv"), show_col_types = FALSE)
 loo <- read_csv(file.path(SRC, "fig4d_loo_decircularization.csv"), show_col_types = FALSE)
@@ -75,7 +52,7 @@ gene_order <- mc$gene[order(mc$mean_impact, decreasing = TRUE)]
 r_cons <- cor(mc$impact_score_CO, mc$impact_score_GEARS)
 message("VERIFY method consistency r = ", round(r_cons, 3), " (expected 0.944)")
 
-## ---------- 2. Panel a: impact ranking ----------
+# Panel a: impact ranking
 mc_long <- mc |>
   select(gene, impact_score_CO, impact_score_GEARS, is_triad) |>
   pivot_longer(c(impact_score_CO, impact_score_GEARS), names_to = "method", values_to = "impact") |>
@@ -94,7 +71,7 @@ p_a <- ggplot(mc_long, aes(y = gene, x = impact, fill = method)) +
         legend.position = "bottom", legend.direction = "horizontal",
         legend.box.margin = margin(-4, 0, 0, 0))
 
-## ---------- 3. Panel b: method consistency ----------
+# Panel b: method consistency
 p_b <- ggplot(mc, aes(x = impact_score_CO, y = impact_score_GEARS)) +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed", linewidth = 0.4, colour = "grey50") +
   geom_point(aes(colour = is_triad, size = is_triad), show.legend = FALSE) +
@@ -112,7 +89,7 @@ p_b <- ggplot(mc, aes(x = impact_score_CO, y = impact_score_GEARS)) +
   labs(x = "CellOracle impact score", y = "GEARS impact score", tag = "B") +
   theme_nature()
 
-## ---------- 4. Panel c: module-delta heatmap (CellOracle) ----------
+# Panel c: module-delta heatmap (CellOracle)
 md <- mod_delta |>
   select(gene, Hub = Hub_delta_mean, TLS = TLS_delta_mean, Chemo_core = Chemo_core_delta_mean,
          `B cell` = Bcell_delta_mean, `T cell` = Tcell_delta_mean, HEV = HEV_delta_mean) |>
@@ -131,7 +108,7 @@ p_c <- ggplot(md, aes(x = module, y = gene)) +
         axis.text.y = element_text(face = ifelse(rev(gene_order) %in% TRIAD, "bold", "plain"),
                                    colour = ifelse(rev(gene_order) %in% TRIAD, COL_TRIAD, "black")))
 
-## ---------- 5. Panel d: LOO de-circularization ----------
+# Panel d: LOO de-circularization
 loo2 <- loo |>
   mutate(ym = factor(paste0(gene, " · ", module),
                      levels = rev(paste0(rep(TRIAD, each = 3), " · ", rep(c("Chemo_core", "Hub", "TLS"), 3)))),
@@ -160,7 +137,7 @@ p_d <- ggplot(loo_long, aes(y = ym)) +
         legend.text = element_text(size = NATURE_SIZE - 1.2),
         plot.margin = margin(8, 4, 2, 2, "mm"))
 
-## ---------- 6. Panel e: TLS_like state shift ----------
+# Panel e: TLS_like state shift
 shift2 <- shift |>
   mutate(gene = factor(gene, levels = rev(gene_order)),
          delta_pp = TLS_like_delta * 100)
@@ -184,7 +161,7 @@ p_e <- ggplot(shift_long, aes(y = gene)) +
         legend.position = "bottom", legend.direction = "horizontal",
         plot.margin = margin(2, 12, 2, 2, "mm"))
 
-## ---------- 7. Panel f: single vs combination KO collapse, both methods ----------
+# Panel f: single vs combination KO collapse, both methods
 co_f <- co_combo |>
   select(perturbation = combination, collapse_pct = TLS_like_to_Other_percent) |>
   mutate(method = "CellOracle")
@@ -225,7 +202,7 @@ p_f <- ggplot(both_f, aes(x = perturbation, y = collapse_pct, fill = method)) +
            family = BASE_FONT, colour = "grey35", lineheight = 0.9,
            label = "= additive")
 
-## ---------- 8. Panel i: LOO state-transition bars (native) ----------
+# Panel i: LOO state-transition bars (native)
 loo_st <- read_csv(file.path(SRC, "fig4j_loo_state_transition.csv"), show_col_types = FALSE) |>
   mutate(gene = factor(gene, levels = c("CCL19", "CCL21", "CXCL13")),
          method = recode(method, orig = "Original KO", loo = "After LOO de-circularization"),
@@ -245,22 +222,22 @@ p_i <- ggplot(loo_st, aes(x = gene, y = pct, fill = method)) +
         legend.position = "bottom", legend.direction = "horizontal",
         legend.text = element_text(size = NATURE_SIZE - 1.4))
 
-## ---------- 8b. Panel h: spatial perturbation maps (TLS module, LOO, enhanced) ----------
+# Panel h: spatial perturbation maps (TLS module, LOO, enhanced)
 sp35 <- trim_png(file.path(VK_FIG, "ko_spatial_tls_delta_enhanced.png"),
                  file.path(TILE_DIR, "spatial_tls_delta_loo_enhanced.png"))
 p_h <- raster_panel(sp35, tag = "H", margin_mm = 2)
 
-## ---------- 8c. Panel g: PCA displacement field (enhanced raster) ----------
+# Panel g: PCA displacement field (enhanced raster)
 pca_png <- trim_png(file.path(VK_FIG, "ko_pca_field_enhanced.png"),
                     file.path(TILE_DIR, "pca_vector_field_enhanced.png"))
 p_g <- raster_panel(pca_png, tag = "G", margin_mm = 2)
 
-## ---------- 8d. Panel j: state dissolution series (enhanced raster) ----------
+# Panel j: state dissolution series (enhanced raster)
 diss_png <- trim_png(file.path(VK_FIG, "ko_state_dissolution_enhanced.png"),
                      file.path(TILE_DIR, "state_dissolution.png"))
 p_j <- raster_panel(diss_png, tag = "J", margin_mm = 2)
 
-## ---------- 9. Compose ----------
+# Compose
 design <- "
   aaabbbcccccc
   dddddeeeefff
@@ -287,7 +264,7 @@ cairo_pdf(file.path(FIG_DIR, "fig4_composite.pdf"), width = w_in, height = h_in,
 ragg::agg_png(file.path(FIG_DIR, "fig4_composite.png"), width = W, height = H, units = "mm", res = 400); print(final); dev.off()
 message("Figure 4 written: ", W, " x ", H, " mm")
 
-## ---------- 10. Export individual panels ----------
+# Export individual panels
 REP_DIR <- file.path(FIG_DIR, "report_panels"); dir.create(REP_DIR, showWarnings = FALSE)
 save_panel <- function(plot, name, w_mm, h_mm) {
   ragg::agg_png(file.path(REP_DIR, name), width = w_mm, height = h_mm, units = "mm", res = 300)

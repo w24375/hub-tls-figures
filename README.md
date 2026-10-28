@@ -1,10 +1,10 @@
 # Code — Immune hubs drive directional maturation of tertiary lymphoid structures under an IDO1 metabolic brake
 
-Panel-plotting code for the manuscript's main figures (Figures 1–8).
+Plotting code for the main figures (Figures 1–8).
 
 ## Scope
 
-Sixteen scripts, at most two per figure, covering the key panels of each main figure:
+Sixteen scripts covering the key panels of each figure:
 
 | Directory | Scripts | Panels covered |
 |---|---|---|

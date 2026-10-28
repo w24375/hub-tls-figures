@@ -1,15 +1,6 @@
-"""Build the lineage-split IDO1 trajectory figures (x2, x4) as vector SVGs
-with editable text, reproducing the canonical style from committed data.
-No suptitles (captions carry the stats).
-
-Inputs:
-  hub_spot_candidate_genes_with_pt.csv  (37,230 Hub/TLS spots; IDO1, pseudotime_l1/l2, tls_stage, cancer_type)
-  ido1_pseudotime_values.csv            (116,942 scRNA cells; IDO1, pseudotime)
-
-Outputs (to metabolism_target/ido1_report_figures/):
-  fig_x2_ridgeline.svg / .png   L1 ridgeline + cancer x stage heatmap
-  fig_x4_loess.svg / .png       dual trajectory: scRNA fraction + spatial L1/L2 fractions
-Prints all computed stats.
+"""Lineage-split IDO1 trajectory figures (x2 ridgeline, x4 dual trajectory).
+Inputs: hub_spot_candidate_genes_with_pt.csv, ido1_pseudotime_values.csv
+Outputs to metabolism_target/ido1_report_figures/
 """
 import pandas as pd
 import numpy as np

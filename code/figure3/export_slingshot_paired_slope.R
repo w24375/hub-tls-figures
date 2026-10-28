@@ -4,25 +4,14 @@
 # (matching the manuscript's 96.9% / p < 2e-16 figure, which used means).
 # The Transition class is omitted because its per-sample position is unstable
 # (mean PT 9.46 > TLS-only 8.28).
-# Run with: /usr/bin/Rscript export_slingshot_paired_slope.R
 
-suppressPackageStartupMessages({
-  library(ggplot2); library(dplyr); library(tidyr); library(readr)
-  library(svglite); library(ragg)
-})
+library(ggplot2); library(dplyr); library(tidyr); library(readr)
+library(svglite); library(ragg)
 
-BASE_FONT <- "Arial"; NATURE_SIZE <- 7
+source(if (file.exists("code/utils/theme.R")) "code/utils/theme.R" else "utils/theme.R")
+
 SRC <- "data/hub_tls_paper_outline/figure3_assembled/source_data"
 OUT <- "data/hub_tls_paper_outline/figure3_assembled/report_panels"
-
-theme_nature <- function(...) {
-  theme_classic(base_size = NATURE_SIZE, base_family = BASE_FONT) +
-    theme(axis.line = element_line(linewidth = 0.35, colour = "black"),
-          axis.ticks = element_line(linewidth = 0.35, colour = "black"),
-          axis.text = element_text(size = NATURE_SIZE, colour = "black"),
-          axis.title = element_text(size = NATURE_SIZE, colour = "black"),
-          panel.grid = element_blank(), plot.margin = margin(2, 2, 2, 2, "mm"), ...)
-}
 
 cs <- read_csv(file.path(SRC, "fig3j_continuous_slingshot_spots.csv"), show_col_types = FALSE)
 complete3 <- cs |>

@@ -1,17 +1,9 @@
 #!/usr/bin/env bash
-# main.sh — runs all 16 panel-plotting scripts in figure order.
-#
-# Prerequisites:
-#   1. The manuscript's source data must be placed under ./data/ preserving
-#      the layout described in README.md (e.g. data/hub_tls_paper_outline/figure1_assembled/…).
-#   2. R (>= 4.3) with packages: Seurat, ggplot2, patchwork, svglite, ragg,
-#      cowplot, RANN, dplyr, tidyr, data.table.
-#   3. Python (>= 3.10) with packages: matplotlib, pandas, numpy, scipy,
-#      scikit-learn.
-#
-# Each script is independent and can also be run individually, e.g.:
+# Runs all 16 figure scripts in order. Each one also works standalone, e.g.:
 #   Rscript code/figure1/assemble_figure1.R
 #   python3 code/figure4/virtual_knockout_gallery.py
+#
+# Needs the manuscript's source data under ./data/ (see README for layout).
 
 set -euo pipefail
 cd "$(dirname "$0")/.."
