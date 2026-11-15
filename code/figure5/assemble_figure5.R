@@ -4,7 +4,7 @@
 library(ggplot2); library(patchwork); library(grid)
 library(dplyr); library(tidyr); library(readr); library(svglite); library(ragg)
 
-source(if (file.exists("code/utils/theme.R")) "code/utils/theme.R" else "utils/theme.R")
+source("code/utils/theme.R")
 
 FIG_DIR <- "data/hub_tls_paper_outline/figure5_assembled"
 SRC <- file.path(FIG_DIR, "source_data")
@@ -244,7 +244,7 @@ svglite(svg_out, width = w_in, height = h_in); print(final); dev.off()
 # svglite writes the resolved system family ("Liberation Sans"); relabel as Arial
 svg_txt <- readLines(svg_out, warn = FALSE)
 svg_txt <- gsub('"Liberation Sans"', '"Arial"', svg_txt, fixed = TRUE)
-# strip AI-incompatible attrs so reopened SVG stays editable
+# strip Illustrator-incompatible attrs so reopened SVG stays editable
 svg_txt <- gsub(" textLength='[^']*'", "", svg_txt)
 svg_txt <- gsub(" lengthAdjust='[^']*'", "", svg_txt)
 writeLines(svg_txt, svg_out)

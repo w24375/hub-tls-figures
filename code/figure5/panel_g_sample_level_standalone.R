@@ -1,15 +1,15 @@
 #!/usr/bin/env Rscript
-# Standalone sample-level Panel G for Fig 5 (AI-editable output).
+# Standalone sample-level Panel G for Fig 5 (Illustrator-editable output).
 # Per-sample median module scores in hub-proximal vs hub-distal TLS (n = 36 paired
 # samples); right column: median difference + paired-Wilcoxon FDR stars.
 # Data: fig5g_module_by_hub_proximity_sample_level.csv (sample-level, canonical modules).
 
 library(ggplot2); library(dplyr); library(tidyr); library(readr); library(svglite); library(ragg)
 
-source(if (file.exists("code/utils/theme.R")) "code/utils/theme.R" else "utils/theme.R")
+source("code/utils/theme.R")
 
 SRC <- "data/hub_tls_paper_outline/figure5_assembled/source_data"
-OUT <- "data/hub_tls_paper_outline/figures_AI_ready"
+OUT <- "data/hub_tls_paper_outline/figure_ready"
 COL_PROX <- "#C41E3A"; COL_DIST <- "grey60"
 
 mod <- read_csv(file.path(SRC, "fig5g_module_by_hub_proximity_sample_level.csv"),

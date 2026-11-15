@@ -8,7 +8,7 @@
 library(ggplot2); library(dplyr); library(tidyr); library(readr)
 library(svglite); library(ragg)
 
-source(if (file.exists("code/utils/theme.R")) "code/utils/theme.R" else "utils/theme.R")
+source("code/utils/theme.R")
 
 SRC <- "data/hub_tls_paper_outline/figure3_assembled/source_data"
 OUT <- "data/hub_tls_paper_outline/figure3_assembled/report_panels"

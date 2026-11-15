@@ -8,8 +8,8 @@ library(ragg); library(png); library(cowplot); library(svglite)
 
 BASE_FONT <- "Arial"
 OUT_PNG <- "data/hub_tls_paper_outline/figure3_assembled/panel_a_tiles/spatial_dpt_strip.png"
-OUT_SVG <- "data/hub_tls_paper_outline/figures_AI_ready/panel_B_spatial_dpt_standalone.svg"
-OUT_PDF <- "data/hub_tls_paper_outline/figures_AI_ready/panel_B_spatial_dpt_standalone.pdf"
+OUT_SVG <- "data/hub_tls_paper_outline/figure_ready/panel_B_spatial_dpt_standalone.svg"
+OUT_PDF <- "data/hub_tls_paper_outline/figure_ready/panel_B_spatial_dpt_standalone.pdf"
 
 DPT_CSV <- "data/spatial/hub_precursor_analysis/paga_dpt_hub_tls_spatial/dpt_pseudotime.csv"
 SLING_CSV <- "data/spatial/hub_precursor_analysis/continuous_pseudotime/scheme_a_independent/continuous_pseudotime_results.csv"
@@ -132,7 +132,7 @@ agg_png(OUT_PNG, width = W_mm, height = H_mm, units = "mm", res = 1200,
 print(p_strip)
 dev.off()
 
-# AI-editable vector exports (RGB, Arial, no textLength so Illustrator can reflow text).
+# Vector exports for Illustrator (RGB, Arial, no textLength so text stays reflowable).
 w_in <- W_mm / 25.4; h_in <- H_mm / 25.4
 svglite(OUT_SVG, width = w_in, height = h_in)
 print(p_strip)

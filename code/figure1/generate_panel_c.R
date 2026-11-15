@@ -3,7 +3,7 @@
 # Data: pseudoreplication_fix sample-level paired Wilcoxon (n = 105 samples).
 library(ggplot2); library(dplyr); library(tidyr); library(readr); library(svglite); library(ragg)
 
-source(if (file.exists("code/utils/theme.R")) "code/utils/theme.R" else "utils/theme.R")
+source("code/utils/theme.R")
 
 OUT_DIR <- "data/hub_tls_paper_outline/figure1_assembled"
 df <- read_csv(file.path(OUT_DIR, "source_data", "C_proximal_vs_distal_hub_DE_sample_level.csv"),
